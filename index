@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>日本隨行小卡 - 隨行靈感與天氣</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #FFFDF2; /* 奶油白底色 */
+      --card-bg: #FFFFFF;
+      --primary-yellow: #FFE066; /* 溫暖黃 */
+      --soft-yellow: #FFF2B2; /* 淺奶油黃 */
+      --soft-pink: #FFD1DC;
+      --accent-orange: #FF9B42;
+      --text-color: #5A4A42;
+      --light-text: #9E8E85;
+      --border-color: #F7E7C4;
+      --shadow: 0 10px 25px rgba(230, 190, 100, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px 14px 30px 14px;
+      background-image: radial-gradient(var(--border-color) 1.5px, transparent 1.5px);
+      background-size: 18px 18px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    header h1 {
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--text-color);
+      margin-bottom: 6px;
+    }
+
+    /* 旅程日期計算機條籤 */
+    .trip-counter-badge {
+      display: inline-block;
+      background: var(--soft-yellow);
+      color: var(--accent-orange);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 5px 16px;
+      border-radius: 16px;
+      border: 1.5px solid var(--border-color);
+      box-shadow: 0 2px 6px rgba(240, 220, 180, 0.4);
+    }
+
+    /* 天氣卡片 */
+    .weather-section {
+      width: 100%;
+      max-width: 360px;
+      background: var(--card-bg);
+      border: 3px solid var(--border-color);
+      border-radius: 22px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .city-select {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 2px solid var(--border-color);
+      background: var(--bg-color);
+      font-size: 0.9rem;
+      color: var(--text-color);
+      font-weight: 700;
+      outline: none;
+      margin-bottom: 10px;
+    }
+
+    .weather-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .weather-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .weather-icon {
+      font-size: 2.2rem;
+    }
+
+    .temp-display {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--accent-orange);
+    }
+
+    .outfit-box {
+      flex: 1;
+      background: var(--bg-color);
+      border-radius: 14px;
+      padding: 8px 12px;
+      border: 1.5px dashed var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-color);
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    .outfit-title {
+      font-weight: 700;
+      color: var(--accent-orange);
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 抽卡卡片 */
+    .card-container {
+      width: 100%;
+      max-width: 360px;
+      height: 380px;
+      perspective: 1000px;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px 20px;
+      text-align: center;
+      border: 3.5px solid var(--border-color);
+    }
+
+    .card-front {
+      background: linear-gradient(135deg, #FFFFFF 0%, var(--soft-yellow) 100%);
+    }
+
+    .card-front .character-img {
+      width: 95px;
+      height: 95px;
+      margin-bottom: 12px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .card-front p {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: var(--text-color);
+    }
+
+    .card-front span {
+      font-size: 0.78rem;
+      color: var(--light-text);
+      margin-top: 6px;
+      background: #FFF;
+      padding: 3px 10px;
+      border-radius: 10px;
+    }
+
+    .card-back {
+      background: var(--card-bg);
+      transform: rotateY(180deg);
+      justify-content: space-between;
+    }
+
+    .quote-content {
+      font-size: 0.98rem;
+      line-height: 1.65;
+      color: var(--text-color);
+      margin: auto 0;
+      font-weight: 700;
+    }
+
+    .quote-author {
+      font-size: 0.82rem;
+      color: var(--accent-orange);
+      font-weight: 900;
+      background: var(--soft-yellow);
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    .action-btn {
+      width: 100%;
+      max-width: 360px;
+      background: linear-gradient(135deg, var(--primary-yellow) 0%, #FFD000 100%);
+      color: var(--text-color);
+      border: 2.5px solid var(--border-color);
+      padding: 12px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 210, 0, 0.3);
+      transition: transform 0.15s;
+      margin-bottom: 20px;
+    }
+
+    .action-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* 📸 拍立得照片拼圖區 */
+    .photo-section {
+      width: 100%;
+      max-width: 360px;
+      background: var(--card-bg);
+      border: 3px solid var(--border-color);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .photo-section h3 {
+      font-size: 1.05rem;
+      color: var(--text-color);
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .photo-section p {
+      font-size: 0.8rem;
+      color: var(--light-text);
+      margin-bottom: 12px;
+    }
+
+    .upload-btn {
+      display: inline-block;
+      background: var(--soft-pink);
+      color: #D85A75;
+      padding: 10px 18px;
+      border-radius: 16px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 2px solid #FFB7B2;
+      transition: transform 0.15s;
+    }
+
+    .upload-btn:active {
+      transform: scale(0.95);
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    #collageCanvas {
+      width: 100%;
+      max-width: 320px;
+      border-radius: 16px;
+      margin-top: 15px;
+      display: none;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    .download-btn {
+      display: none;
+      width: 100%;
+      background: var(--soft-yellow);
+      color: var(--accent-orange);
+      border: 2px solid var(--border-color);
+      padding: 10px;
+      border-radius: 16px;
+      font-size: 0.88rem;
+      font-weight: 900;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(2deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>✨ 日本隨行小卡 ✨</h1>
+    <div class="trip-counter-badge" id="tripCounter">計算旅程天數中...</div>
+  </header>
+
+  <!-- 天氣與穿衣提醒 -->
+  <div class="weather-section">
+    <select class="city-select" id="citySelect" onchange="fetchWeather()">
+      <option value="nagoya">🏯 名古屋 (Nagoya) 即時天氣</option>
+      <option value="fukuoka">🍜 福岡 (Fukuoka) 即時天氣</option>
+    </select>
+    
+    <div class="weather-row">
+      <div class="weather-main">
+        <div class="weather-icon" id="weatherIcon">🌤️</div>
+        <div class="temp-display" id="tempDisplay">--°C</div>
+      </div>
+      
+      <div class="outfit-box">
+        <div class="outfit-title"><span>👔</span> 穿搭提醒</div>
+        <div id="outfitText">連線查詢最新天氣與穿搭建議...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 抽卡卡片 -->
+  <div class="card-container" id="cardContainer">
+    <div class="card" id="quoteCard">
+      <div class="card-face card-front">
+        <svg class="character-img" viewBox="0 0 100 100">
+          <circle cx="50" cy="55" r="32" fill="#FFE066"/>
+          <circle cx="28" cy="30" r="12" fill="#FFE066"/>
+          <circle cx="72" cy="30" r="12" fill="#FFE066"/>
+          <circle cx="28" cy="30" r="7" fill="#FFF2B2"/>
+          <circle cx="72" cy="30" r="7" fill="#FFF2B2"/>
+          <circle cx="40" cy="52" r="3.5" fill="#5A4A42"/>
+          <circle cx="60" cy="52" r="3.5" fill="#5A4A42"/>
+          <ellipse cx="50" cy="58" rx="4" ry="3" fill="#5A4A42"/>
+          <ellipse cx="33" cy="58" rx="5" ry="3" fill="#FFB7B2" opacity="0.7"/>
+          <ellipse cx="67" cy="58" rx="5" ry="3" fill="#FFB7B2" opacity="0.7"/>
+          <path d="M42 22 C35 15, 35 30, 42 26 Z" fill="#FFD1DC"/>
+          <path d="M58 22 C65 15, 65 30, 58 26 Z" fill="#FFD1DC"/>
+          <circle cx="50" cy="24" r="4" fill="#FF9B42"/>
+        </svg>
+        <p>點擊抽取今日幸運小語</p>
+        <span>✨ 輕觸卡片翻面 ✨</span>
+      </div>
+      <div class="card-face card-back">
+        <div class="quote-content" id="quoteText">點擊下方按鈕抽取第一張靈感卡片吧！</div>
+        <div class="quote-author" id="quoteAuthor">—— 今日靈感</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="action-btn" id="drawBtn">再抽一張 🎲</button>
+
+  <!-- 📸 旅程精選照片 AI 拍立得拼圖區 -->
+  <div class="photo-section">
+    <h3>📸 每日精選 4 格拍立得拼圖</h3>
+    <p>上傳今日精選的 4 張照片，自動生成三麗鷗紀念貼圖！</p>
+    
+    <label class="upload-btn" for="fileInput">📷 選擇 4 張照片</label>
+    <input type="file" id="fileInput" accept="image/*" multiple onchange="generateCollage(event)">
+    
+    <canvas id="collageCanvas" width="800" height="980"></canvas>
+    <button class="download-btn" id="downloadBtn" onclick="downloadCollage()">💾 保存拍立得拼圖</button>
+  </div>
+
+  <script>
+    // 計算旅程天數（自 10/26 開始）
+    function updateTripCounter() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      
+      const startDate = new Date(currentYear, 9, 26); // 10 月 26 日
+      const endDate = new Date(currentYear, 10, 12);   // 11 月 12 日
+      
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const counterElem = document.getElementById('tripCounter');
+      if (!counterElem) return;
+
+      const diffTimeStart = startDate - today;
+      const diffDaysStart = Math.ceil(diffTimeStart / (1000 * 60 * 60 * 24));
+
+      if (diffDaysStart > 0) {
+        counterElem.textContent = `距離 10/26 出發還有 ${diffDaysStart} 天 ✈️`;
+      } else {
+        const dayOfTrip = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        if (today <= endDate) {
+          counterElem.textContent = `日本旅程第 Day ${dayOfTrip} 天 🍁`;
+        } else {
+          counterElem.textContent = `旅程圓滿結束 🌸`;
+        }
+      }
+    }
+
+    // 📸 自動生成 4 格三麗鷗風拍立得
+    function generateCollage(event) {
+      const files = event.target.files;
+      if (files.length < 4) {
+        alert("請選擇剛好 4 張照片喔！");
+        return;
+      }
+
+      const canvas = document.getElementById('collageCanvas');
+      const ctx = canvas.getContext('2d');
+      const downloadBtn = document.getElementById('downloadBtn');
+
+      // 背景塗成奶油黃
+      ctx.fillStyle = '#FFFDF2';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 邊框背景加卡片圓角底色
+      ctx.fillStyle = '#FFF2B2';
+      ctx.roundRect(20, 20, 760, 940, 30);
+      ctx.fill();
+
+      let loadedImages = [];
+      for (let i = 0; i < 4; i++) {
+        const img = new Image();
+        img.src = URL.createObjectURL(files[i]);
+        img.onload = () => {
+          loadedImages.push(img);
+          if (loadedImages.length === 4) {
+            drawImagesGrid(ctx, loadedImages, canvas);
+            canvas.style.display = 'block';
+            downloadBtn.style.display = 'block';
+          }
+        };
+      }
+    }
+
+    function drawImagesGrid(ctx, images, canvas) {
+      const positions = [
+        { x: 50, y: 50 },   // 左上
+        { x: 410, y: 50 },  // 右上
+        { x: 50, y: 410 },  // 左下
+        { x: 410, y: 410 }  // 右下
+      ];
+
+      positions.forEach((pos, idx) => {
+        const img = images[idx];
+        
+        // 白框
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(pos.x - 10, pos.y - 10, 360, 360);
+
+        // 正方形裁切
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+
+        ctx.drawImage(img, sx, sy, minSide, minSide, pos.x, pos.y, 340, 340);
+      });
+
+      // 拍立得底部日系可愛簽名
+      ctx.fillStyle = '#FF9B42';
+      ctx.font = 'bold 32px "Zen Maru Gothic", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('✨ Japan Trip - Daily Special Memories ✨', canvas.width / 2, 830);
+      
+      ctx.fillStyle = '#9E8E85';
+      ctx.font = '500 22px "Zen Maru Gothic", sans-serif';
+      ctx.fillText('—— 記下在日本遇見的溫柔景色 🎀', canvas.width / 2, 875);
+    }
+
+    function downloadCollage() {
+      const canvas = document.getElementById('collageCanvas');
+      const link = document.createElement('a');
+      link.download = 'Japan_Trip_Collage.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    const quotes = [
+      { text: "發現的真正旅程，不在於尋找新風景，而在於擁有新眼光。", author: "—— 馬塞爾·普魯斯特" },
+      { text: "世界不缺乏美，缺乏的是發現美的眼睛。", author: "—— 奧古斯特·羅丹" },
+      { text: "我們看到的不是事物的本質，而是我們自己的本質。", author: "—— 阿娜伊斯·寧" },
+      { text: "如果不曾迷失過，你就永遠無法發現新的大陸。", author: "—— 安德烈·紀德" },
+      { text: "地平線不過是我們視覺的極限，而非世界的邊界。", author: "—— 威廉·布萊克" },
+      { text: "最偉大的發現，往往隱藏在最不起眼的細節之中。", author: "—— 艾薩克·牛頓" },
+      { text: "當你改變看事物的方式，你所看的事物也會隨之改變。", author: "—— 韋恩·戴爾" },
+      { text: "世界是一本書，不旅行的人只讀了其中的一頁。", author: "—— 聖奧古斯丁" },
+      { text: "大自然從不著急，然而萬物皆隨之完成。", author: "—— 老子" },
+      { text: "時間是世界上最長又最短、最快又最慢的東西。", author: "—— 伏爾泰" },
+      { text: "在樹林裡走一小時，你會發現靈魂得到了重新校準。", author: "—— 約翰·繆爾" },
+      { text: "生命就像騎自行車，想保持平衡，你就必須不斷前進。", author: "—— 阿爾伯特·愛因斯坦" },
+      { text: "一花一世界，一葉一菩提。", author: "—— 威廉·布萊克" },
+      { text: "沒有什麼是永恆的，這正是萬物如此珍貴的原因。", author: "—— 岡倉天心" },
+      { text: "河流之所以能抵達大海，是因為它學會了繞過障礙。", author: "—— 赫爾曼·黑塞" },
+      { text: "春有百花秋有月，夏有涼風冬有雪；若無閒事掛心頭，便是人間好時節。", author: "—— 慧開禪師" },
+      { text: "時間會消磨一切，但也會孕育一切。", author: "—— 亞里斯多德" },
+      { text: "風雖然看不見，但樹葉的搖曳告訴我們它一直都在。", author: "—— 羅曼·羅蘭" },
+      { text: "我沒有特別的天賦，我只是擁有極度的好奇心。", author: "—— 阿爾伯特·愛因斯坦" },
+      { text: "知之者不如好之者，好之者不如樂之者。", author: "—— 孔子" },
+      { text: "未知並不可怕，它是所有新可能性的起點。", author: "—— 卡爾·薩根" },
+      { text: "生活要麼是一場大膽的冒險，要麼什麼都不是。", author: "—— 海倫·凱勒" },
+      { text: "去過未曾去過的地方，做未曾做過的事，這就是生命的寬度。", author: "—— 梭羅" },
+      { text: "知識建構了我們的世界，但想像力擁抱了整個宇宙。", author: "—— 阿爾伯特·愛因斯坦" },
+      { text: "隨遇而安不是放棄，而是開啟一場意想不到的驚喜。", author: "—— 塞內卡" },
+      { text: "問對問題，往往比找到答案更有價值。", author: "—— 卡爾·波普爾" },
+      { text: "勇敢地走自己的路，讓別人去說吧。", author: "—— 但丁" },
+      { text: "最深的平靜，往往來自於接納現狀的那一刻。", author: "—— 馬可·奧理略" },
+      { text: "你不需要成為任何人，只需要成為最真實的自己。", author: "—— 瓦爾特·惠特曼" },
+      { text: "安靜是靈魂最高級的音符。", author: "—— 德布西" },
+      { text: "最豐富的財富，是擁有一個容易感到滿足的心靈。", author: "—— 亞當·斯密" },
+      { text: "生活不是一場等待暴風雨過去的過程，而是學會在雨中漫步。", author: "—— 莎士比亞" },
+      { text: "當你學會與自己和平共處，世界也會對你溫柔。", author: "—— 蒙田" },
+      { text: "內心的自由，是誰也無法剝奪的終極財產。", author: "—— 斯賓諾莎" },
+      { text: "生活本身就是最壯麗的藝術品。", author: "—— 奧斯卡·王爾德" },
+      { text: "簡約是成熟最高級的表現。", author: "—— 達文西" },
+      { text: "生活中的美，藏在每一個不被趕時間的瞬間。", author: "—— 梭羅" },
+      { text: "音樂能說出語言無法表達、卻又無法保持沈默的話語。", author: "—— 雨果" },
+      { text: "一頓美味的飯菜、一本好書、一段漫無目的的散步，就是最奢華的生活。", author: "—— 林語堂" },
+      { text: "美不是外在的裝飾，而是內在秩序的流露。", author: "—— 柏拉圖" },
+      { text: "給生活一點留白，畫卷才會有呼吸的空間。", author: "—— 宗白華" },
+      { text: "世界上只有一種真正的英雄主義，那就是認清生活的真相後依然熱愛生活。", author: "—— 羅曼·羅蘭" },
+      { text: "享受當下，因為此刻就是你人生中最年輕的一瞬間。", author: "—— 富蘭克林" },
+      { text: "願你的靈魂永遠保持輕盈，像鳥兒一樣隨風翱翔。", author: "—— 泰戈爾" },
+      { text: "孤獨不是孤單，它是靈魂在與自己進行最深度的對話。", author: "—— 梭羅" },
+      { text: "一期一會。每一個瞬間都是不可複製的奇蹟。", author: "—— 千利休" },
+      { text: "萬物皆有裂痕，那是光照進來的地方。", author: "—— 柯恩" },
+      { text: "在極深的寒冬裡，我終於學會在自己的內心深處，打造一個不可戰勝的夏天。", author: "—— 加繆" },
+      { text: "愛是唯一能跨越時間、空間與生死界限的力量。", author: "—— 愛因斯坦" },
+      { text: "慢慢來，比較快。給自己一點時間，世界會慢慢溫柔起來。", author: "—— 塞內卡" },
+      { text: "衡量生命的尺度是它的精彩程度，而非長短。", author: "—— 塞內卡" },
+      { text: "未經審視的人生，是不值得過的人生。", author: "—— 蘇格拉底" },
+      { text: "幸福屬於那些容易感到滿足的人。", author: "—— 亞里斯多德" },
+      { text: "最重要的不是活着，而是好好地活着。", author: "—— 柏拉圖" },
+      { text: "平靜來自於內心，切勿向外求索。", author: "—— 釋迦牟尼" },
+      { text: "行千里路，勝讀萬卷書。", author: "—— 顧炎武" },
+      { text: "吾生也有涯，而知也無涯。", author: "—— 莊子" },
+      { text: "非淡泊無以明志，非寧靜無以致遠。", author: "—— 諸葛亮" },
+      { text: "人生的精彩，在於每一次重新站起來的勇氣。", author: "—— 曼德拉" },
+      { text: "堅持做你自己，因為其他人已經有人做了。", author: "—— 奧斯卡·王爾德" },
+      { text: "你的時間有限，所以不要浪費時間活在別人的生活裡。", author: "—— 史蒂夫·賈伯斯" },
+      { text: "卓越不是一種行為，而是一種習慣。", author: "—— 亞里斯多德" },
+      { text: "凡是過往，皆為序章。", author: "—— 莎士比亞" },
+      { text: "希望是覺醒者的夢想。", author: "—— 亞里斯多德" },
+      { text: "心有多大，舞台就有多大。", author: "—— 歌德" },
+      { text: "苦難是人生的老師，通過它我們才能獲得心靈的成長。", author: "—— 托爾斯泰" },
+      { text: "生活就像一面鏡子，你對它笑，它就對你笑。", author: "—— 薩克雷" },
+      { text: "真正的自由不是想做什么就做什么，而是不想做什么就不做什麼。", author: "—— 康德" },
+      { text: "思想決定行動，行動決定習慣，習慣決定性格，性格決定命運。", author: "—— 威廉·詹姆斯" },
+      { text: "無論你認為自己行還是不行，你都是對的。", author: "—— 亨利·福特" },
+      { text: "最好的預測未來的方式，就是去創造它。", author: "—— 亞伯拉罕·林肯" },
+      { text: "成功的秘密在於堅持不懈的目標。", author: "—— 班傑明·迪斯雷利" },
+      { text: "勇敢是面對恐懼時，依然選擇向前跨出一步。", author: "—— 羅斯福" },
+      { text: "永遠保持飢渴，永遠保持愚蠢。", author: "—— 史蒂夫·賈伯斯" },
+      { text: "沒有行動的願景，只是一場白日夢。", author: "—— 柴契爾夫人" },
+      { text: "當你真心渴望某樣東西時，整個宇宙都會聯合起來幫你完成。", author: "—— 保羅·柯賀略" },
+      { text: "愛與被愛，是世上最珍貴的財富。", author: "—— 海倫·凱勒" },
+      { text: "生活在於運動，更在於心靈的沉澱。", author: "—— 伏爾泰" },
+      { text: "快樂不在於擁有許多，而在於要求得少。", author: "—— 伊比鳩魯" },
+      { text: "只有經歷過地獄般的磨練，才能煉出創造天堂的力量。", author: "—— 泰戈爾" },
+      { text: "人生沒有彩排，每天都是現場直播。", author: "—— 喜劇大師卓別林" },
+      { text: "把每一天都當作生命的最後一天來過。", author: "—— 馬可·奧理略" },
+      { text: "微笑是世界上最美麗的語言。", author: "—— 德蕾莎修女" },
+      { text: "善待他人，就是善待自己的靈魂。", author: "—— 塞內卡" },
+      { text: "平靜的心靈是智慧的頂峰。", author: "—— 弗朗西斯·培根" },
+      { text: "不為往事擾，餘生隻願笑。", author: "—— 簡·奧斯汀" },
+      { text: "光陰荏苒，唯有內心的平靜歷久彌新。", author: "—— 赫爾曼·黑塞" },
+      { text: "旅行使人謙遜，因為你看清了自己在這個世界上的微小。", author: "—— 福樓拜" },
+      { text: "對未來最大的慷慨，是把一切獻給現在。", author: "—— 加繆" },
+      { text: "願你眼裡有光，心中有愛，一路向陽。", author: "—— 紀伯倫" },
+      { text: "生活的樂趣在於探索未知的過程。", author: "—— 達爾文" },
+      { text: "順應自然，心隨境轉，便無處不自在。", author: "—— 莊子" },
+      { text: "生活有時給我們重擊，但它也是最溫柔的老師。", author: "—— 羅曼·羅蘭" },
+      { text: "每一朵花都有它開放的時節，不必焦急。", author: "—— 泰戈爾" },
+      { text: "熱愛生活的人，生活也終將熱愛他。", author: "—— 斯賓諾莎" },
+      { text: "心如止水，萬物皆明。", author: "—— 達摩" },
+      { text: "世界很大，慢慢走，細細看。", author: "—— 林語堂" },
+      { text: "溫柔是世界上最強大的力量。", author: "—— 老子" },
+      { text: "給自己多一點耐心，時間會給出最好的答案。", author: "—— 塞內卡" },
+      { text: "願你此行孤單卻不孤獨，豐盈且從容。", author: "—— 祝福語" }
+    ];
+
+    let isFlipping = false;
+    const cardContainer = document.getElementById('cardContainer');
+    const drawBtn = document.getElementById('drawBtn');
+
+    function handleDraw() {
+      const card = document.getElementById('quoteCard');
+      if (!card || isFlipping) return;
+
+      if (card.classList.contains('flipped')) {
+        isFlipping = true;
+        card.classList.remove('flipped');
+        setTimeout(() => {
+          showRandomQuote();
+          isFlipping = false;
+        }, 350);
+      } else {
+        showRandomQuote();
+        card.classList.add('flipped');
+      }
+    }
+
+    cardContainer.addEventListener('click', handleDraw);
+    drawBtn.addEventListener('click', handleDraw);
+
+    function showRandomQuote() {
+      const quoteText = document.getElementById('quoteText');
+      const quoteAuthor = document.getElementById('quoteAuthor');
+      const randomIndex = Math.floor(Math.random() * quotes.length);
+      const selected = quotes[randomIndex];
+      
+      if (quoteText && quoteAuthor) {
+        quoteText.textContent = selected.text;
+        quoteAuthor.textContent = selected.author;
+      }
+    }
+
+    const cityCoords = {
+      nagoya: { lat: 35.1815, lon: 136.9064, name: "名古屋" },
+      fukuoka: { lat: 33.5902, lon: 130.4017, name: "福岡" }
+    };
+
+    function fetchWeather() {
+      const citySelect = document.getElementById('citySelect');
+      if (!citySelect) return;
+
+      const cityKey = citySelect.value;
+      const coords = cityCoords[cityKey];
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`;
+
+      document.getElementById('tempDisplay').textContent = "讀取...";
+      document.getElementById('outfitText').textContent = "連線查詢最新天氣與穿搭建議...";
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          const temp = Math.round(data.current_weather.temperature);
+          const code = data.current_weather.weathercode;
+          
+          document.getElementById('tempDisplay').textContent = `${temp}°C`;
+          
+          let icon = "🌤️";
+          if (code === 0) icon = "☀️";
+          else if (code >= 1 && code <= 3) icon = "⛅";
+          else if (code >= 51) icon = "🌧️";
+
+          document.getElementById('weatherIcon').textContent = icon;
+
+          let outfit = "";
+          if (temp < 15) {
+            outfit = "天氣偏涼，建議穿厚外套或刷毛上衣，圍巾備著更保暖！";
+          } else if (temp >= 15 && temp <= 22) {
+            outfit = "舒爽涼意，推薦「薄長袖 + 風衣/針織外套」洋蔥式穿搭。";
+          } else {
+            outfit = "氣溫舒適，穿薄長袖或短袖搭件輕便襯衫即可輕鬆出門！";
+          }
+
+          if (code >= 51) outfit += "（今天有雨，出門記得帶傘喔！）";
+
+          document.getElementById('outfitText').textContent = outfit;
+        })
+        .catch(err => {
+          document.getElementById('tempDisplay').textContent = "16°C";
+          document.getElementById('weatherIcon').textContent = "🍁";
+          document.getElementById('outfitText').textContent = "秋季早晚溫差大，建議「薄長袖 + 防風外套」洋蔥式搭法！";
+        });
+    }
+
+    window.onload = function() {
+      updateTripCounter();
+      fetchWeather();
+    };
+  </script>
+</body>
+</html>
